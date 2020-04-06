@@ -1,0 +1,34 @@
+{
+  "TableName": "Goals",
+  "KeySchema": [
+    { "AttributeName": "user", "KeyType": "HASH" },
+    { "AttributeName": "id", "KeyType": "RANGE" }
+  ],
+  "AttributeDefinitions": [
+    { "AttributeName": "user", "AttributeType": "S" },
+    { "AttributeName": "id", "AttributeType": "S" },
+    { "AttributeName": "created", "AttributeType": "S"}
+  ],
+  "LocalSecondaryIndexes": [
+    {
+      "IndexName": "CreatedIndex",
+      "KeySchema": [
+        {
+          "AttributeName": "user",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "created",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      }
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 100,
+    "WriteCapacityUnits": 100
+  }
+}
