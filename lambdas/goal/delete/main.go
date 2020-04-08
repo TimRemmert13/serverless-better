@@ -38,7 +38,6 @@ func HandleRequest(ctx context.Context, inputKey Key) (Response, error) {
 		TableName:    aws.String("Goals"),
 		ReturnValues: aws.String("ALL_OLD"),
 	}
-
 	result, err := db.DeleteItem(input)
 
 	// handle possible errors

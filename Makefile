@@ -7,6 +7,8 @@ build: gomodgen
 	env GOOS=linux go build -ldflags="-s -w" -o bin/goal-get lambdas/goal/get/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/goal-list lambdas/goal/list/main.go
 	env GOOS=linux go build -ldflags="-s -w" -o bin/goal-delete lambdas/goal/delete/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/user-register lambdas/user/register/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/user-verify lambdas/user/verify/main.go
 
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock
