@@ -47,9 +47,35 @@ Resources:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/user-register
+      Environment:
+        Variables:
+          AWS_CLIENT_ID:
+          AWS_CLIENT_SECRET:
 
   VerifyUser:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/user-verify
+      Environment:
+        Variables:
+          AWS_CLIENT_ID:
+          AWS_CLIENT_SECRET:
       
+  LoginUser:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Handler: bin/user-login
+      Environment:
+        Variables:
+          AWS_CLIENT_ID:
+          AWS_CLIENT_SECRET:
+
+  LogoutUser:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Handler: bin/user-logout
+
+  DeleteUser:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Handler: bin/user-delete

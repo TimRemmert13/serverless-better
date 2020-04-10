@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -40,7 +41,7 @@ func handleRequest(ctx context.Context, userInput UserInput) (Response, error) {
 
 	// configure create user input
 	input := &cognitoidentityprovider.SignUpInput{
-		ClientId:       aws.String("16btm3mund4aaeupitgjljmual"),
+		ClientId:       aws.String(os.Getenv("AWS_CLIENT_ID")),
 		Password:       aws.String(userInput.Password),
 		SecretHash:     aws.String(util.GenerateSecretHash(userInput.Name)),
 		UserAttributes: []*cognitoidentityprovider.AttributeType{emailAttribute, nameAttribute},

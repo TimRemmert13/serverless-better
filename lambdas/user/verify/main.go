@@ -17,7 +17,11 @@ type ConfirmInput struct {
 	Token    string `json:"token"`
 }
 
-func HandleRequest(ctx context.Context, confirmInput ConfirmInput) {
+type Response struct {
+	Message string `json:"result"`
+}
+
+func HandleRequest(ctx context.Context, confirmInput ConfirmInput) (Response, error) {
 	// get cognito service
 	svc := cognito.GetCognitoService()
 
@@ -30,14 +34,15 @@ func HandleRequest(ctx context.Context, confirmInput ConfirmInput) {
 	}
 
 	// call verify token
-	output, err := svc.ConfirmSignUp(input)
+	_, err := svc.ConfirmSignUp(input)
 
 	if err != nil {
 		fmt.Println(err.Error())
+		return Response{Message: "Problme verifying the token"}, err
 	}
 
 	// process results
-	fmt.Println(output)
+	return Response{Message: "Successfully verified the token"}, nil
 }
 
 func main() {
