@@ -12,6 +12,15 @@ Globals:
     MemorySize: 250
     Runtime: go1.x
 
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: Name of S3 bucket where swagger spec is stored
+  StageName:
+    Type: String
+    Description: The name of the stage
+    Default: dev
+
 Resources:
   CreateGoal:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -36,6 +45,14 @@ Resources:
     Properties:
       Handler: bin/goal-list
       Policies: AmazonDynamoDBReadOnlyAccess
+      Events:
+        ListGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals
+            Method: GET
   
   DeleteGoal:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -79,3 +96,23 @@ Resources:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/user-delete
+
+  # API definition
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: better-api-${StageName}
+      StageName:
+        Ref: StageName
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS:Include
+          Parameters:
+            Location:
+              Fn::Join:
+                - ''
+                - - 's3://'
+                  - Ref: S3BucketName
+                  - '/open-api.yaml'
+

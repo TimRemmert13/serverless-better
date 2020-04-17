@@ -13,8 +13,7 @@ import (
 )
 
 type Response struct {
-	Message string       `json:"result"`
-	Goals   []model.Goal `json:"goals"`
+	Goals []model.Goal `json:"goals"`
 }
 
 type QueryMapping struct {
@@ -54,7 +53,6 @@ func HandleRequest(ctx context.Context, listInput ListInput) (Response, error) {
 	// handle possible errors
 	if err != nil {
 		fmt.Println(err.Error())
-		return Response{Message: "Problem executing query."}, err
 	}
 
 	// return success
@@ -63,12 +61,10 @@ func HandleRequest(ctx context.Context, listInput ListInput) (Response, error) {
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return Response{Message: "Could not create the response."}, nil
 	}
 
 	response := Response{
-		Message: "Successfully retrieved goal!",
-		Goals:   goals,
+		Goals: goals,
 	}
 	return response, nil
 }

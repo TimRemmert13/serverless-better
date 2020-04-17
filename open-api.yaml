@@ -1,0 +1,208 @@
+openapi: 3.0.0
+info:
+  title: better-api
+  version: "1.2"
+  contact:
+    name: Tim
+    email: tremmert93@gmail.com
+  description: An API for the better application client types to interact with.
+paths:
+  /goal:
+    get:
+      summary: ListGoals
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Goal'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      operationId: get-goal
+      description: Get all your created goal
+      tags:
+        - goals
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListGoals.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'GET'
+        type: 'aws'
+    post:
+      summary: CreateGoal
+      responses:
+        '200':
+          description: OK
+      operationId: post-goal
+      description: Create a new goal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Goal'
+      tags:
+        - goals
+  '/goal/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    put:
+      summary: EditGoal
+      tags:
+        - goals
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  '':
+                    $ref: '#/components/schemas/Goal'
+        '400':
+          description: Bad Request invalid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: No goal found by that id
+      operationId: put-goal-id
+      description: Update an existing goal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Goal'
+        description: New Goal object to update the existing goal
+    delete:
+      summary: DeleteGoal
+      tags:
+        - goals
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request invalid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: No Goal found by that id
+      operationId: delete-goal-id
+      description: Delete a goal by its id
+    get:
+      summary: GetGoalById
+      tags:
+        - goals
+      security:
+        - BetterUserPool: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+        '400':
+          description: Bad Request Invalid Id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: No goal found by that id
+      operationId: get-goal-id
+      description: Get a specific goal by its id
+      parameters: []
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetGoal.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        requestTemplates:
+          application/json: >
+            {
+              "id": "$input.params('id')"
+              "user": "$context.authorizer.claims.username"
+            }
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'GET'
+        type: 'aws'
+  
+components:
+  schemas:
+    Goal:
+      title: Goal
+      type: object
+      description: A user created goal
+      properties:
+        id:
+          type: string
+        user:
+          type: string
+        description:
+          type: string
+        title:
+          type: string
+        achieved:
+          type: boolean
+          default: false
+        created:
+          type: string
+        habits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Habit'
+      required:
+        - user
+        - title
+    Habit:
+      title: Habit
+      type: object
+      properties:
+        id:
+          type: string
+        trigger:
+          type: string
+        routine:
+          type: string
+        reward:
+          type: string
+        name:
+          type: string
+        completed:
+          type: boolean
+        start_date_time:
+          type: string
+        end_date_time:
+          type: string
+      required:
+        - name
+  securitySchemes:
+    BetterUserPool:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - arn:aws:cognito-idp:us-east-1:234248903973:userpool/us-east-1_5YFzqyyls
+
