@@ -1,7 +1,6 @@
 {
   "user": "Tim",
   "id": "2",
-  "created": "today",
   "title": "my sample goal",
   "description": "This is where my description would go.",
   "achieved": false

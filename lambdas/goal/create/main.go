@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
@@ -28,12 +30,19 @@ and adds it to dynamodb for storage
 */
 func (d *deps) HandleRequest(ctx context.Context, goal model.Goal) (Response, error) {
 
-	// // get local dynamodb session
+	// validate input
+	if goal.User == "" || goal.ID == "" || goal.Title == "" {
+		return Response{}, errors.New("Missing property user, id, or title in goal")
+	}
+
+	goal.Created = time.Now()
+
+	// get dynamodb session
 	if d.ddb == nil {
 		d.ddb = db.GetDbSession()
 	}
 
-	// // map go struct to dynamodb attribute values
+	// map go struct to dynamodb attribute values
 	av, err := dynamodbattribute.MarshalMap(goal)
 
 	if err != nil {
