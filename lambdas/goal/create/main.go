@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+
 	"github.com/serverless/better/lib/model"
 
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -17,34 +19,19 @@ type Response struct {
 	Message string `json:"response"`
 }
 
-// type PostInput struct {
-// 	User        string `json:"user"`
-// 	ID          string `json:"id"`
-// 	Description string `json:"description"`
-// 	Title       string `json:"title"`
-// 	Achieved    bool   `json:"achieved"`
-// 	Created     string `json:"created"`
-// 	Updated     string `json:"updated"`
-// }
+type deps struct {
+	ddb dynamodbiface.DynamoDBAPI
+}
 
 /* HandleRequest is a function for lambda function to take an input of a goal in a json form
-and add it to dynamodb
+and adds it to dynamodb for storage
 */
-func HandleRequest(ctx context.Context, goal model.Goal) (Response, error) {
-
-	// map input to function to a goal struct
-	// goal := model.Goal{
-	// 	User:        postInput.User,
-	// 	ID:          postInput.ID,
-	// 	Description: postInput.Description,
-	// 	Title:       postInput.Title,
-	// 	Achieved:    postInput.Achieved,
-	// 	Created:     postInput.Created,
-	// 	Updated:     postInput.Updated,
-	// }
+func (d *deps) HandleRequest(ctx context.Context, goal model.Goal) (Response, error) {
 
 	// // get local dynamodb session
-	db := db.GetLocalSession()
+	if d.ddb == nil {
+		d.ddb = db.GetDbSession()
+	}
 
 	// // map go struct to dynamodb attribute values
 	av, err := dynamodbattribute.MarshalMap(goal)
@@ -61,7 +48,7 @@ func HandleRequest(ctx context.Context, goal model.Goal) (Response, error) {
 	}
 
 	//attempt insert into dynamodb
-	result, err := db.PutItem(input)
+	result, err := d.ddb.PutItem(input)
 
 	// handle possible errors
 	if err != nil {
@@ -69,11 +56,12 @@ func HandleRequest(ctx context.Context, goal model.Goal) (Response, error) {
 		return Response{Message: "Problem saving changes."}, err
 	}
 
-	// return success
+	// return success and log results in cloud watch
 	fmt.Println(result)
 	return Response{Message: "Successfully added new goal!"}, nil
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	d := deps{}
+	lambda.Start(d.HandleRequest)
 }
