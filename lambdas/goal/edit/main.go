@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,8 +16,8 @@ import (
 )
 
 type Response struct {
-	Message     string `json:"result"`
-	UpdatedGoal UpdatedGoal
+	Message     string      `json:"result"`
+	UpdatedGoal UpdatedGoal `json:"updated"`
 }
 
 type UpdatedGoal struct {
@@ -40,10 +44,24 @@ type PutInput struct {
 	Achieved    bool   `json:"achieved"`
 }
 
+type deps struct {
+	ddb dynamodbiface.DynamoDBAPI
+}
+
 /* HandleRequest is a function for lambda function to take an input of a goal in a json form
 and add it to dynamodb
 */
-func HandleRequest(ctx context.Context, putInput PutInput) (Response, error) {
+func (d *deps) HandleRequest(ctx context.Context, putInput PutInput) (Response, error) {
+
+	// valid input
+	if putInput.Key.User == "" || putInput.Key.ID == "" {
+		return Response{}, errors.New("You must provide a valid username and id")
+	}
+
+	//get  dynamodb session
+	if d.ddb == nil {
+		d.ddb = db.GetDbSession()
+	}
 
 	// map key to attribute values
 	key, err := dynamodbattribute.MarshalMap(putInput.Key)
@@ -57,10 +75,8 @@ func HandleRequest(ctx context.Context, putInput PutInput) (Response, error) {
 
 	if err != nil {
 		fmt.Println("Problem converting input to attribute map.")
+		return Response{}, err
 	}
-
-	// // get local dynamodb session
-	db := db.GetLocalSession()
 
 	input := &dynamodb.UpdateItemInput{
 		Key:                       key,
@@ -70,12 +86,27 @@ func HandleRequest(ctx context.Context, putInput PutInput) (Response, error) {
 		ReturnValues:              aws.String("UPDATED_NEW"),
 	}
 
-	result, err := db.UpdateItem(input)
+	result, err := d.ddb.UpdateItem(input)
 
 	// handle possible errors
 	if err != nil {
-		fmt.Println(err.Error())
-		return Response{Message: "Problem saving changes."}, err
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				return Response{Message: "Provisioned throughput has been exceeded for dynamodb"}, err
+			case dynamodb.ErrCodeResourceNotFoundException:
+				return Response{Message: "No goal found with that id."}, err
+			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
+				return Response{Message: "Goal size is too big to edit and return"}, err
+			case dynamodb.ErrCodeRequestLimitExceeded:
+				return Response{Message: "Exceeded dynamodb request limit."}, err
+			default:
+				return Response{Message: "Problem editing goal"}, err
+			}
+		} else {
+			fmt.Println(err.Error())
+			return Response{Message: "Problem editing goal"}, err
+		}
 	}
 
 	// return success
@@ -95,5 +126,6 @@ func HandleRequest(ctx context.Context, putInput PutInput) (Response, error) {
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	d := deps{}
+	lambda.Start(d.HandleRequest)
 }

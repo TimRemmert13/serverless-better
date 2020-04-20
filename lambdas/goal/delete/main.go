@@ -54,11 +54,18 @@ func (d *deps) HandleRequest(ctx context.Context, inputKey Key) (Response, error
 	}
 	result, err := d.ddb.DeleteItem(input)
 
-	// handle not found exception
+	// handle exceptions
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				return Response{"Exceeded provisioned throughput for request", model.Goal{}}, err
+			case dynamodb.ErrCodeResourceNotFoundException:
 				return Response{"No goal found by that id", model.Goal{}}, err
+			case dynamodb.ErrCodeRequestLimitExceeded:
+				return Response{"Dynamodb request limit has been reached", model.Goal{}}, err
+			default:
+				return Response{"Problem deleting item", model.Goal{}}, err
 			}
 		}
 	}
