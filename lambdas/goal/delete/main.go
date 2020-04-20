@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,28 +26,41 @@ type Key struct {
 	ID   string `json:"id"`
 }
 
+type deps struct {
+	ddb dynamodbiface.DynamoDBAPI
+}
+
 /* HandleRequest is a function for lambda function to take an input of a goal in a json form
 and add it to dynamodb
 */
-func HandleRequest(ctx context.Context, inputKey Key) (Response, error) {
+func (d *deps) HandleRequest(ctx context.Context, inputKey Key) (Response, error) {
+
+	// validate input
+	if inputKey.ID == "" || inputKey.User == "" {
+		return Response{}, errors.New("You must provide a goal id and username")
+	}
+
+	if d.ddb == nil {
+		d.ddb = db.GetDbSession()
+	}
 
 	// map key to attribute values
 	key, err := dynamodbattribute.MarshalMap(inputKey)
-
-	// // get local dynamodb session
-	db := db.GetLocalSession()
 
 	input := &dynamodb.DeleteItemInput{
 		Key:          key,
 		TableName:    aws.String("Goals"),
 		ReturnValues: aws.String("ALL_OLD"),
 	}
-	result, err := db.DeleteItem(input)
+	result, err := d.ddb.DeleteItem(input)
 
-	// handle possible errors
+	// handle not found exception
 	if err != nil {
-		fmt.Println(err.Error())
-		return Response{Message: "Problem saving changes."}, err
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
+				return Response{"No goal found by that id", model.Goal{}}, err
+			}
+		}
 	}
 
 	// return success
@@ -51,8 +68,8 @@ func HandleRequest(ctx context.Context, inputKey Key) (Response, error) {
 	err = dynamodbattribute.UnmarshalMap(result.Attributes, &deletedGoal)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return Response{Message: "Could not create the response."}, nil
+		fmt.Println(err)
+		return Response{Message: "Could not create the response."}, err
 	}
 
 	response := Response{
@@ -63,5 +80,6 @@ func HandleRequest(ctx context.Context, inputKey Key) (Response, error) {
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	d := deps{}
+	lambda.Start(d.HandleRequest)
 }
