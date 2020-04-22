@@ -21,3 +21,4 @@ vendor
 *.out
 
 sam-template.yaml
+.vscode/

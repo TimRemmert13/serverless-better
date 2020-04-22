@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider/cognitoidentityprovideriface"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -25,9 +29,21 @@ type Response struct {
 	RefreshToken *string `json:"refresh_token"`
 }
 
-func HandleLoginRequest(ctx context.Context, loginInput LoginInput) (Response, error) {
+type deps struct {
+	cognito cognitoidentityprovideriface.CognitoIdentityProviderAPI
+}
+
+func (d *deps) HandleRequest(ctx context.Context, loginInput LoginInput) (Response, error) {
+	// validate input
+	if loginInput.Username == "" || loginInput.Password == "" {
+		return Response{}, errors.New("You must provide a valid username and password")
+	}
+
 	// get cognito service
-	svc := cognito.GetCognitoService()
+	if d.cognito == nil {
+		d.cognito = cognito.GetCognitoService()
+	}
+
 	// create auth input
 	input := &cognitoidentityprovider.InitiateAuthInput{
 		AuthFlow: aws.String("USER_PASSWORD_AUTH"),
@@ -39,12 +55,30 @@ func HandleLoginRequest(ctx context.Context, loginInput LoginInput) (Response, e
 		}),
 	}
 
-	output, err := svc.InitiateAuth(input)
+	output, err := d.cognito.InitiateAuth(input)
 
-	// process results
+	// handle possible exceptions
 	if err != nil {
-		fmt.Println(err.Error())
-		return Response{Message: "Problem authenticating user"}, err
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case cognitoidentityprovider.ErrCodePasswordResetRequiredException:
+				return Response{Message: "You must reset your password before you can login"}, err
+			case cognitoidentityprovider.ErrCodeUserNotConfirmedException:
+				return Response{Message: "You have not confirmed your email address yet"}, err
+			case cognitoidentityprovider.ErrCodeInvalidUserPoolConfigurationException:
+				return Response{Message: "Cognito userpool not configured for this request"}, err
+			case cognitoidentityprovider.ErrCodeTooManyRequestsException:
+				return Response{Message: "Too many request made to login"}, err
+			case cognitoidentityprovider.ErrCodeUserNotFoundException:
+				return Response{Message: "Username or password is incorrect"}, err
+			default:
+				fmt.Println(aerr.Error())
+				return Response{Message: "Problem authenticating user"}, err
+			}
+		} else {
+			fmt.Println(err.Error())
+			return Response{Message: "Problem authenticating user"}, err
+		}
 	}
 
 	response := Response{
@@ -58,6 +92,6 @@ func HandleLoginRequest(ctx context.Context, loginInput LoginInput) (Response, e
 }
 
 func main() {
-	//HandleLoginRequest(nil, LoginInput{Username: "Tim", Password: "Morty2012!"})
-	lambda.Start(HandleLoginRequest)
+	d := deps{}
+	lambda.Start(d.HandleRequest)
 }

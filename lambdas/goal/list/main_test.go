@@ -88,4 +88,32 @@ func TestHandleRequest(t *testing.T) {
 			t.Error("geting all users goals failed")
 		}
 	})
+
+	t.Run("User not found", func(t *testing.T) {
+
+		// load test data
+		jsonFile, err := os.Open("./testdata/list-payload-neg.json")
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer jsonFile.Close()
+		var queryInput ListInput
+		byteJSON, _ := ioutil.ReadAll(jsonFile)
+		json.Unmarshal(byteJSON, &queryInput)
+
+		// create mock output
+		m := mockQuery{}
+
+		// create dependancy object
+		d := deps{
+			ddb: m,
+		}
+
+		//execute test of function
+		result, err := d.HandleRequest(nil, queryInput)
+
+		if result.Message != "User not found" || err == nil {
+			t.Error("Unable to catch user not found exception")
+		}
+	})
 }

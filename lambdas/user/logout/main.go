@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider/cognitoidentityprovideriface"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,9 +22,20 @@ type Response struct {
 	Message string `json:"result"`
 }
 
-func HandleLogoutRequest(ctx context.Context, signOutInput SignOutInput) (Response, error) {
+type deps struct {
+	cognito cognitoidentityprovideriface.CognitoIdentityProviderAPI
+}
+
+func (d *deps) HandleRequest(ctx context.Context, signOutInput SignOutInput) (Response, error) {
+
+	// validate input
+	if signOutInput.AccessToken == "" {
+		return Response{}, errors.New("You must provide a valid access token")
+	}
 	// get cognito session
-	svc := cognito.GetCognitoService()
+	if d.cognito == nil {
+		d.cognito = cognito.GetCognitoService()
+	}
 
 	// create sign out input
 	input := &cognitoidentityprovider.GlobalSignOutInput{
@@ -28,17 +43,30 @@ func HandleLogoutRequest(ctx context.Context, signOutInput SignOutInput) (Respon
 	}
 
 	// initiate sign out
-	_, err := svc.GlobalSignOut(input)
+	_, err := d.cognito.GlobalSignOut(input)
 
-	// process results
+	// handle possible exceptions
 	if err != nil {
-		fmt.Println(err.Error())
-		return Response{Message: "Unable to signout user."}, err
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case cognitoidentityprovider.ErrCodeResourceNotFoundException:
+				return Response{Message: "The access token provided is invalid"}, err
+			case cognitoidentityprovider.ErrCodeTooManyRequestsException:
+				return Response{Message: "Too many request made to validate the code"}, err
+			default:
+				fmt.Println(aerr.Error())
+				return Response{Message: "Problem signing out user"}, err
+			}
+		} else {
+			fmt.Println(err.Error())
+			return Response{Message: "Problem signing out user"}, err
+		}
 	}
 
 	return Response{Message: "Successfully signed out user."}, nil
 }
 
 func main() {
-	lambda.Start(HandleLogoutRequest)
+	d := deps{}
+	lambda.Start(d.HandleRequest)
 }

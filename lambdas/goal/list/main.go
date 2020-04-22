@@ -104,5 +104,6 @@ func (d *deps) HandleRequest(ctx context.Context, listInput ListInput) (Response
 
 func main() {
 	d := deps{}
+	fmt.Println(1 + 1)
 	lambda.Start(d.HandleRequest)
 }
