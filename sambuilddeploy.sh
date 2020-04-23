@@ -13,9 +13,12 @@ make build
 #Package and upload to s3
 aws cloudformation package --template-file $INPUT_FILE \
                           --output-template-file $OUTPUT_FILE \
-                          --s3-bucket $S3_BUCKET
+                          --s3-bucket $S3_BUCKET \
+                          
 
 # deploy
 aws cloudformation deploy --template-file $OUTPUT_FILE \
-                          --stack-name $STACK_NAME
-                          --capabilities CAPABILITY_IAM
+                          --stack-name $STACK_NAME \
+                          --capabilities CAPABILITY_IAM \
+                          --parameter-overrides ClientId=$AWS_CLIENT_ID \
+                          ClientSecret=$AWS_CLIENT_SECRET S3BucketName=$S3_BUCKET

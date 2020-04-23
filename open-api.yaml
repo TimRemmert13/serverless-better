@@ -10,6 +10,8 @@ paths:
   /goal:
     get:
       summary: ListGoals
+      security:
+        - BetterUserPool: []
       responses:
         '200':
           description: OK
@@ -38,8 +40,10 @@ paths:
         type: 'aws'
     post:
       summary: CreateGoal
+      security: 
+        - BetterUserPool: []
       responses:
-        '200':
+        '201':
           description: OK
       operationId: post-goal
       description: Create a new goal
@@ -50,6 +54,15 @@ paths:
               $ref: '#/components/schemas/Goal'
       tags:
         - goals
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateGoal.Arn}/invocations
+        responses:
+          default:
+            statusCode: '201'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
+        type: 'aws'
   '/goal/{id}':
     parameters:
       - schema:
@@ -61,6 +74,8 @@ paths:
       summary: EditGoal
       tags:
         - goals
+      security:
+        - BetterUserPool: []
       responses:
         '200':
           description: OK
@@ -83,16 +98,55 @@ paths:
           description: No goal found by that id
       operationId: put-goal-id
       description: Update an existing goal
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetGoal.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        requestTemplates:
+          application/json: >
+            {
+              "id": "$input.params('id')"
+              "user": "$context.authorizer.claims.username"
+            }
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'PUT'
+        type: 'aws'
       requestBody:
+        description: New Goal object to update the existing goal
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Goal'
-        description: New Goal object to update the existing goal
+              type: object
+              properties:
+                key:
+                  type: object
+                  required:
+                    - user
+                    - id
+                  properties:
+                    user:
+                      type: string
+                    id:
+                      type: string
+                updates:
+                  type: object
+                  properties:
+                    description:
+                      type: string
+                    title:
+                      type: string
+                    achieved:
+                      type: boolean
+              required:
+                - key
     delete:
       summary: DeleteGoal
       tags:
         - goals
+      security:
+        - BetterUserPool: []
       responses:
         '200':
           description: OK
@@ -106,6 +160,21 @@ paths:
           description: No Goal found by that id
       operationId: delete-goal-id
       description: Delete a goal by its id
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteGoal.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        requestTemplates:
+          application/json: >
+            {
+              "id": "$input.params('id')"
+              "user": "$context.authorizer.claims.username"
+            }
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'DELETE'
+        type: 'aws'
     get:
       summary: GetGoalById
       tags:
@@ -144,6 +213,186 @@ paths:
             }
         passthroughBehavior: 'when_no_match'
         httpMethod: 'GET'
+        type: 'aws'
+  '/users/{token}':
+    delete:
+      summary: DeleteUser
+      tags:
+        - users
+      security:
+        - BetterUserPool: []
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+      operationId: delete-users
+      description: Delete the currently logged in user
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteUser.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        requestTemplates:
+          application/json: >
+            {
+              "token": "$input.params('token')"
+              "user": "$context.authorizer.claims.username"
+            }
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'DELETE'
+        type: 'aws'
+    parameters:
+      - schema:
+          type: string
+        name: token
+        in: path
+        required: true
+  /users/login:
+    post:
+      summary: Login
+      tags:
+        - users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  access_token:
+                    type: string
+                  expires:
+                    type: string
+                  id_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '400':
+          description: Bad Request Invalid user credentials
+        '404':
+          description: User not found
+      operationId: post-users-login
+      description: Login with a users account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        description: The users username and password
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LoginUser.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
+        type: 'aws'
+  /users/logout:
+    post:
+      summary: Logout
+      tags:
+        - users
+      security:
+        - BetterUserPool: []
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request Invalid token
+        '401':
+          description: Unauthorized
+      operationId: post-users-logout
+      description: Logout of your current session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required: 
+                - token
+        description: The current users access token
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LogoutUser.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
+        type: 'aws'
+  /users/verify:
+    post:
+      summary: Verify
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request invalid token or username
+      operationId: post-users-verify
+      description: Verify users email address
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                token:
+                  type: string
+        description: Username and verify token recieved via email
+      tags:
+        - users
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VerifyUser.Arn}/invocations
+        responses:
+          default:
+            statusCode: '200'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
+        type: 'aws'
+  /users:
+    post:
+      summary: CreateUser
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request invalid username or password
+      operationId: post-users
+      description: Create a new User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        description: The new users creditionals of username and password
+      tags:
+        - users
+      x-amazon-apigateway-integration:
+        uri: 
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateUser.Arn}/invocations
+        responses:
+          default:
+            statusCode: '201'
+        passthroughBehavior: 'when_no_match'
+        httpMethod: 'POST'
         type: 'aws'
   
 components:
@@ -195,6 +444,19 @@ components:
           type: string
       required:
         - name
+    User:
+      title: User
+      type: object
+      x-tags:
+        - users
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
   securitySchemes:
     BetterUserPool:
       type: apiKey

@@ -20,31 +20,110 @@ Parameters:
     Type: String
     Description: The name of the stage
     Default: dev
+  ClientId:
+    Type: String
+    Description: client id of cognito client app
+  ClientSecret:
+    Type: String
+    Description: client secret of cognito client app
 
 Resources:
+
+# definition of dynamodb table
+  BetterTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - 
+          AttributeName: "user"
+          AttributeType: "S"
+        - 
+          AttributeName: "id"
+          AttributeType: "S"
+        - 
+          AttributeName: "created"
+          AttributeType: "S"
+      KeySchema:
+        - 
+          AttributeName: "user"
+          KeyType: "HASH"
+        - 
+          AttributeName: "id"
+          KeyType: "RANGE"
+      LocalSecondaryIndexes:
+        -
+          IndexName: "CreatedIndex"
+          KeySchema:
+            - 
+              AttributeName: "user"
+              KeyType: "HASH"
+            - 
+              AttributeName: "created"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "KEYS_ONLY"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: Goals
+
+
+# definition of all lambda functions
   CreateGoal:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/goal-create
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - DynamoDBWritePolicy:
+            TableName: Goals
+      Events:
+        CreateGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals
+            Method: POST
   
-  UpdateGoal:
+  EditGoal:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/goal-edit
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: Goals
+      Events:
+        EditGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals/{id}
+            Method: PUT
 
   GetGoal:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/goal-get
-      Policies: AmazonDynamoDBReadOnlyAccess
+      Policies: 
+        - DynamoDBReadPolicy:
+            TableName: Goals
+      Events:
+        GetGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals/{id}
+            Method: GET
 
   ListGoals:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/goal-list
-      Policies: AmazonDynamoDBReadOnlyAccess
+      Policies: 
+        - DynamoDBReadPolicy:
+            TableName: Goals
       Events:
         ListGoalEvent:
           Type: Api
@@ -58,16 +137,34 @@ Resources:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/goal-delete
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: Goals
+      Events:
+        DeleteGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals/{id}
+            Method: DELETE
 
-  RegisterUser:
+  CreateUser:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/user-signup
       Environment:
         Variables:
-          AWS_CLIENT_ID:
-          AWS_CLIENT_SECRET:
+          AWS_CLIENT_ID: !Ref ClientId
+          AWS_CLIENT_SECRET: !Ref ClientSecret
+      Events:
+        CreateUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users
+            Method: POST
 
   VerifyUser:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -75,8 +172,16 @@ Resources:
       Handler: bin/user-verify
       Environment:
         Variables:
-          AWS_CLIENT_ID:
-          AWS_CLIENT_SECRET:
+          AWS_CLIENT_ID: !Ref ClientId
+          AWS_CLIENT_SECRET: !Ref ClientSecret
+      Events:
+        VerifyUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users/verify
+            Method: POST
       
   LoginUser:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -84,18 +189,42 @@ Resources:
       Handler: bin/user-login
       Environment:
         Variables:
-          AWS_CLIENT_ID:
-          AWS_CLIENT_SECRET:
+          AWS_CLIENT_ID: !Ref ClientId
+          AWS_CLIENT_SECRET: !Ref ClientSecret
+      Events:
+        LoginUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users/login
+            Method: POST
 
   LogoutUser:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/user-logout
+    Events:
+        LogoutUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users/logout
+            Method: POST
 
   DeleteUser:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Handler: bin/user-delete
+    Events:
+        DeleteUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users/{id}
+            Method: DELETE
 
   # API definition
   RestApi:
@@ -107,12 +236,7 @@ Resources:
         Ref: StageName
       DefinitionBody:
         Fn::Transform:
-          Name: AWS:Include
+          Name: AWS::Include
           Parameters:
-            Location:
-              Fn::Join:
-                - ''
-                - - 's3://'
-                  - Ref: S3BucketName
-                  - '/open-api.yaml'
+            Location: !Sub s3://${S3BucketName}/open-api.yaml
 

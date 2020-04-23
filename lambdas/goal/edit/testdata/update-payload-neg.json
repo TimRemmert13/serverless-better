@@ -3,7 +3,9 @@
     "user": "Tim",
     "id": "11"
   },
-  "description": "My new description",
-  "title": "my new title",
-  "achieved": true
+  "updates": {
+    "description": "My new description",
+    "title": "my new title",
+    "achieved": true
+  }
 }

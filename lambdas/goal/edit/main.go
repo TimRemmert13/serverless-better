@@ -38,7 +38,11 @@ type UpdateMapping struct {
 }
 
 type PutInput struct {
-	Key         Key    `json:"key"`
+	Key     Key     `json:"key"`
+	Updates Updates `json:"updates"`
+}
+
+type Updates struct {
 	Description string `json:"description"`
 	Title       string `json:"title"`
 	Achieved    bool   `json:"achieved"`
@@ -68,9 +72,9 @@ func (d *deps) HandleRequest(ctx context.Context, putInput PutInput) (Response, 
 
 	// map updates
 	update, err := dynamodbattribute.MarshalMap(UpdateMapping{
-		Description: putInput.Description,
-		Title:       putInput.Title,
-		Achieved:    putInput.Achieved,
+		Description: putInput.Updates.Description,
+		Title:       putInput.Updates.Title,
+		Achieved:    putInput.Updates.Achieved,
 	})
 
 	if err != nil {
