@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -16,11 +15,6 @@ import (
 	"github.com/serverless/better/lib/model"
 )
 
-type Response struct {
-	Message     string `json:"result"`
-	DeletedGoal model.Goal
-}
-
 type Key struct {
 	User string `json:"user"`
 	ID   string `json:"id"`
@@ -33,11 +27,14 @@ type deps struct {
 /* HandleRequest is a function for lambda function to take an input of a goal in a json form
 and add it to dynamodb
 */
-func (d *deps) HandleRequest(ctx context.Context, inputKey Key) (Response, error) {
+func (d *deps) HandleRequest(ctx context.Context, inputKey Key) (model.Goal, error) {
 
 	// validate input
 	if inputKey.ID == "" || inputKey.User == "" {
-		return Response{}, errors.New("You must provide a goal id and username")
+		return model.Goal{}, model.ResponseError{
+			Code:    400,
+			Message: "You must provide a valid username and goal id",
+		}
 	}
 
 	if d.ddb == nil {
@@ -59,13 +56,25 @@ func (d *deps) HandleRequest(ctx context.Context, inputKey Key) (Response, error
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return Response{"Exceeded provisioned throughput for request", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Exceeded provisioned throughput for request",
+				}
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return Response{"No goal found by that id", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    404,
+					Message: "No goal found by that id",
+				}
 			case dynamodb.ErrCodeRequestLimitExceeded:
-				return Response{"Dynamodb request limit has been reached", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Dynamodb request limit has been reached",
+				}
 			default:
-				return Response{"Problem deleting item", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem deleting item",
+				}
 			}
 		}
 	}
@@ -76,14 +85,13 @@ func (d *deps) HandleRequest(ctx context.Context, inputKey Key) (Response, error
 
 	if err != nil {
 		fmt.Println(err)
-		return Response{Message: "Could not create the response."}, err
+		return model.Goal{}, model.ResponseError{
+			Code:    500,
+			Message: "Could not create the response.",
+		}
 	}
 
-	response := Response{
-		Message:     "Successfully deleted the goal",
-		DeletedGoal: deletedGoal,
-	}
-	return response, nil
+	return deletedGoal, nil
 }
 
 func main() {

@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
+
+	"github.com/serverless/better/lib/model"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -32,7 +33,10 @@ func (d *deps) HandleRequest(ctx context.Context, confirmInput ConfirmInput) (Re
 
 	// validate input
 	if confirmInput.Username == "" || confirmInput.Token == "" {
-		return Response{}, errors.New("You must provide a username and token")
+		return Response{}, model.ResponseError{
+			Code:    400,
+			Message: "You must provide a username and token",
+		}
 	}
 
 	// get cognito service
@@ -56,22 +60,43 @@ func (d *deps) HandleRequest(ctx context.Context, confirmInput ConfirmInput) (Re
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case cognitoidentityprovider.ErrCodeTooManyFailedAttemptsException:
-				return Response{Message: "Too many failed attempts to verify the code"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Too many failed attempts to verify the code",
+				}
 			case cognitoidentityprovider.ErrCodeCodeMismatchException:
-				return Response{Message: "Provided incorrect code"}, err
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "Provided incorrect code",
+				}
 			case cognitoidentityprovider.ErrCodeExpiredCodeException:
-				return Response{Message: "The code has expired"}, err
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "The code has expired",
+				}
 			case cognitoidentityprovider.ErrCodeTooManyRequestsException:
-				return Response{Message: "Too many request made to validate the code"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Too many request made to validate the code",
+				}
 			case cognitoidentityprovider.ErrCodeUserNotFoundException:
-				return Response{Message: "No user found"}, err
+				return Response{}, model.ResponseError{
+					Code:    404,
+					Message: "No user found",
+				}
 			default:
 				fmt.Println(aerr.Error())
-				return Response{Message: "Problem verifying code"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem verifying code",
+				}
 			}
 		} else {
 			fmt.Println(err.Error())
-			return Response{Message: "Problem verifying code"}, err
+			return Response{}, model.ResponseError{
+				Code:    500,
+				Message: "Problem verifying code",
+			}
 		}
 	}
 

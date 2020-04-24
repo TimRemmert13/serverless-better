@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -34,7 +33,10 @@ func (d *deps) HandleRequest(ctx context.Context, goal model.Goal) (Response, er
 
 	// validate input
 	if goal.User == "" || goal.ID == "" || goal.Title == "" {
-		return Response{}, errors.New("Missing property user, id, or title in goal")
+		return Response{}, model.ResponseError{
+			Code:    400,
+			Message: "You must provide a goal user, id, and title",
+		}
 	}
 
 	goal.Created = time.Now()
@@ -66,19 +68,37 @@ func (d *deps) HandleRequest(ctx context.Context, goal model.Goal) (Response, er
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return Response{Message: "Encounted provisioned throughput exception for dynamodb"}, err
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "You must provide a goal user, id, and title",
+				}
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return Response{Message: "Could not find the specified table"}, err
+				return Response{}, model.ResponseError{
+					Code:    404,
+					Message: "Could not find the specified table",
+				}
 			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
-				return Response{Message: "Size of the goal is too large"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Goal size is too large to update",
+				}
 			case dynamodb.ErrCodeRequestLimitExceeded:
-				return Response{Message: "Reached the request limit for dynamodb"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Reached the request limit for dynamodb",
+				}
 			default:
-				return Response{Message: "Problem creating a new goal"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem creating a new goal",
+				}
 			}
 		} else {
 			fmt.Println(err.Error())
-			return Response{Message: "Problem creating a new goal"}, err
+			return Response{}, model.ResponseError{
+				Code:    500,
+				Message: "Problem creating a new goal",
+			}
 		}
 	}
 

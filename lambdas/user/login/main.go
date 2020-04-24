@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
+
+	"github.com/serverless/better/lib/model"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider/cognitoidentityprovideriface"
@@ -22,7 +23,6 @@ type LoginInput struct {
 }
 
 type Response struct {
-	Message      string  `json:"result"`
 	AccessToken  *string `json:"access_token"`
 	ExpiresIn    *int64  `json:"expires"`
 	IDToken      *string `json:"id_token"`
@@ -36,7 +36,10 @@ type deps struct {
 func (d *deps) HandleRequest(ctx context.Context, loginInput LoginInput) (Response, error) {
 	// validate input
 	if loginInput.Username == "" || loginInput.Password == "" {
-		return Response{}, errors.New("You must provide a valid username and password")
+		return Response{}, model.ResponseError{
+			Code:    400,
+			Message: "You must provide a valid username and password",
+		}
 	}
 
 	// get cognito service
@@ -62,27 +65,47 @@ func (d *deps) HandleRequest(ctx context.Context, loginInput LoginInput) (Respon
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case cognitoidentityprovider.ErrCodePasswordResetRequiredException:
-				return Response{Message: "You must reset your password before you can login"}, err
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "You must reset your password before you can login",
+				}
 			case cognitoidentityprovider.ErrCodeUserNotConfirmedException:
-				return Response{Message: "You have not confirmed your email address yet"}, err
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "You have not confirmed your email address yet",
+				}
 			case cognitoidentityprovider.ErrCodeInvalidUserPoolConfigurationException:
-				return Response{Message: "Cognito userpool not configured for this request"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Cognito userpool not configured for this request",
+				}
 			case cognitoidentityprovider.ErrCodeTooManyRequestsException:
-				return Response{Message: "Too many request made to login"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Too many request made to login",
+				}
 			case cognitoidentityprovider.ErrCodeUserNotFoundException:
-				return Response{Message: "Username or password is incorrect"}, err
+				return Response{}, model.ResponseError{
+					Code:    404,
+					Message: "Username or password is incorrect",
+				}
 			default:
 				fmt.Println(aerr.Error())
-				return Response{Message: "Problem authenticating user"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem authenticating user",
+				}
 			}
 		} else {
 			fmt.Println(err.Error())
-			return Response{Message: "Problem authenticating user"}, err
+			return Response{}, model.ResponseError{
+				Code:    500,
+				Message: "Problem authenticating user",
+			}
 		}
 	}
 
 	response := Response{
-		Message:      "Successfully Authenticated user.",
 		AccessToken:  output.AuthenticationResult.AccessToken,
 		ExpiresIn:    output.AuthenticationResult.ExpiresIn,
 		IDToken:      output.AuthenticationResult.IdToken,

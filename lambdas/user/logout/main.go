@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
+
+	"github.com/serverless/better/lib/model"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider/cognitoidentityprovideriface"
@@ -30,7 +31,10 @@ func (d *deps) HandleRequest(ctx context.Context, signOutInput SignOutInput) (Re
 
 	// validate input
 	if signOutInput.AccessToken == "" {
-		return Response{}, errors.New("You must provide a valid access token")
+		return Response{}, model.ResponseError{
+			Code:    400,
+			Message: "You must provide a valid access token",
+		}
 	}
 	// get cognito session
 	if d.cognito == nil {
@@ -50,16 +54,28 @@ func (d *deps) HandleRequest(ctx context.Context, signOutInput SignOutInput) (Re
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case cognitoidentityprovider.ErrCodeResourceNotFoundException:
-				return Response{Message: "The access token provided is invalid"}, err
+				return Response{}, model.ResponseError{
+					Code:    404,
+					Message: "The access token provided is invalid",
+				}
 			case cognitoidentityprovider.ErrCodeTooManyRequestsException:
-				return Response{Message: "Too many request made to validate the code"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Too many request made to validate the code",
+				}
 			default:
 				fmt.Println(aerr.Error())
-				return Response{Message: "Problem signing out user"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem signing out user",
+				}
 			}
 		} else {
 			fmt.Println(err.Error())
-			return Response{Message: "Problem signing out user"}, err
+			return Response{}, model.ResponseError{
+				Code:    500,
+				Message: "Problem signing out user",
+			}
 		}
 	}
 

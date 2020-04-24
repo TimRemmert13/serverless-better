@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
+
+	"github.com/serverless/better/lib/model"
 
 	"github.com/serverless/better/lib/cognito"
 
@@ -36,7 +37,10 @@ func (d *deps) HandleRequest(ctx context.Context, userInput UserInput) (Response
 
 	// validate input
 	if userInput.Name == "" || userInput.Email == "" || userInput.Password == "" {
-		return Response{}, errors.New("You must provide a username, email, and password")
+		return Response{}, model.ResponseError{
+			Code:    400,
+			Message: "You must provide a username, email, and password",
+		}
 	}
 
 	// initialize cognito service
@@ -70,18 +74,33 @@ func (d *deps) HandleRequest(ctx context.Context, userInput UserInput) (Response
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case cognitoidentityprovider.ErrCodeInvalidParameterException:
-				return Response{Message: "Invalid password"}, err
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "Invalid password",
+				}
 			case cognitoidentityprovider.ErrCodeUsernameExistsException:
-				return Response{Message: "User already exists"}, err
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "User already exists",
+				}
 			case cognitoidentityprovider.ErrCodeTooManyRequestsException:
-				return Response{Message: "Too many request made to cognito for user signup"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Too many request made to cognito for user signup",
+				}
 			default:
 				fmt.Println(aerr.Error())
-				return Response{Message: "Problem signing up the user"}, err
+				return Response{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem signing up the user",
+				}
 			}
 		} else {
 			fmt.Println(err.Error())
-			return Response{Message: "Problem signing up the user"}, err
+			return Response{}, model.ResponseError{
+				Code:    500,
+				Message: "Problem signing up the user",
+			}
 		}
 	}
 

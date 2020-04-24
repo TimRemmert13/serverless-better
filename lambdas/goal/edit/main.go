@@ -2,29 +2,18 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/serverless/better/lib/db"
+	"github.com/serverless/better/lib/model"
 )
-
-type Response struct {
-	Message     string      `json:"result"`
-	UpdatedGoal UpdatedGoal `json:"updated"`
-}
-
-type UpdatedGoal struct {
-	Description string `json:"description"`
-	Title       string `json:"title"`
-	Acheived    bool   `json:"achieved"`
-}
 
 type Key struct {
 	User string `json:"user"`
@@ -55,11 +44,14 @@ type deps struct {
 /* HandleRequest is a function for lambda function to take an input of a goal in a json form
 and add it to dynamodb
 */
-func (d *deps) HandleRequest(ctx context.Context, putInput PutInput) (Response, error) {
+func (d *deps) HandleRequest(ctx context.Context, putInput PutInput) (model.Goal, error) {
 
 	// valid input
 	if putInput.Key.User == "" || putInput.Key.ID == "" {
-		return Response{}, errors.New("You must provide a valid username and id")
+		return model.Goal{}, model.ResponseError{
+			Code:    400,
+			Message: "You must provide a valid username and goal id",
+		}
 	}
 
 	//get  dynamodb session
@@ -79,7 +71,10 @@ func (d *deps) HandleRequest(ctx context.Context, putInput PutInput) (Response, 
 
 	if err != nil {
 		fmt.Println("Problem converting input to attribute map.")
-		return Response{}, err
+		return model.Goal{}, model.ResponseError{
+			Code:    500,
+			Message: "Problem converting input to attribute map.",
+		}
 	}
 
 	input := &dynamodb.UpdateItemInput{
@@ -97,36 +92,60 @@ func (d *deps) HandleRequest(ctx context.Context, putInput PutInput) (Response, 
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return Response{Message: "Provisioned throughput has been exceeded for dynamodb"}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Exceeded dynamodb provisioned throughput",
+				}
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return Response{Message: "No goal found with that id."}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    404,
+					Message: "No goal found with that id.",
+				}
 			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
-				return Response{Message: "Goal size is too big to edit and return"}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Goal size is too big to edit and return",
+				}
 			case dynamodb.ErrCodeRequestLimitExceeded:
-				return Response{Message: "Exceeded dynamodb request limit."}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Exceeded dynamodb request limit.",
+				}
 			default:
-				return Response{Message: "Problem editing goal"}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem editing goal",
+				}
 			}
 		} else {
 			fmt.Println(err.Error())
-			return Response{Message: "Problem editing goal"}, err
+			return model.Goal{}, model.ResponseError{
+				Code:    500,
+				Message: "Problem editing goal",
+			}
 		}
 	}
 
+	updates := Updates{}
+
 	// return success
-	updatedGoal := UpdatedGoal{}
-	err = dynamodbattribute.UnmarshalMap(result.Attributes, &updatedGoal)
+	err = dynamodbattribute.UnmarshalMap(result.Attributes, &updates)
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return Response{Message: "Could not create the response."}, nil
+		return model.Goal{}, model.ResponseError{
+			Code:    500,
+			Message: "Could not create the response.",
+		}
 	}
 
-	response := Response{
-		Message:     "Successfully updated the following fields",
-		UpdatedGoal: updatedGoal,
-	}
-	return response, nil
+	return model.Goal{
+		User:        putInput.Key.User,
+		ID:          putInput.Key.ID,
+		Description: updates.Description,
+		Title:       updates.Title,
+		Achieved:    updates.Achieved,
+	}, nil
 }
 
 func main() {

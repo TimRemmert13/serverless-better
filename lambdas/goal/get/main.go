@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -16,11 +15,6 @@ import (
 	"github.com/serverless/better/lib/model"
 )
 
-type Response struct {
-	Message string     `json:"result"`
-	Goal    model.Goal `json:"goal"`
-}
-
 type GetInput struct {
 	User string `json:"user"`
 	ID   string `json:"id"`
@@ -33,11 +27,14 @@ type deps struct {
 /* HandleRequest is a function for lambda function to take an input of a goal in a json form
 and add it to dynamodb
 */
-func (d *deps) HandleRequest(ctx context.Context, getInput GetInput) (Response, error) {
+func (d *deps) HandleRequest(ctx context.Context, getInput GetInput) (model.Goal, error) {
 
 	// valid input
 	if getInput.User == "" || getInput.ID == "" {
-		return Response{}, errors.New("Request must have a user and id")
+		return model.Goal{}, model.ResponseError{
+			Code:    400,
+			Message: "Request must have a user and an id",
+		}
 	}
 
 	// map key to attribute values
@@ -45,7 +42,10 @@ func (d *deps) HandleRequest(ctx context.Context, getInput GetInput) (Response, 
 
 	if err != nil {
 		fmt.Println("Problem converting input to attribute map.")
-		return Response{}, errors.New("Problem converting input to attribute map")
+		return model.Goal{}, model.ResponseError{
+			Code:    500,
+			Message: "Problem converting input to attribute map",
+		}
 	}
 
 	// get local dynamodb session
@@ -65,17 +65,32 @@ func (d *deps) HandleRequest(ctx context.Context, getInput GetInput) (Response, 
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return Response{"dynamodb provisioned throughput exceeded", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "dynamodb provisioned throughput exceeded",
+				}
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return Response{"No goal found by that id", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    404,
+					Message: "No goal found by that id",
+				}
 			case dynamodb.ErrCodeRequestLimitExceeded:
-				return Response{"Exceeded dynamodb request limit", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Exceeded dynamodb request limit",
+				}
 			default:
-				return Response{"Problem retrieving the goal", model.Goal{}}, err
+				return model.Goal{}, model.ResponseError{
+					Code:    500,
+					Message: "Problem retrieving the goal",
+				}
 			}
 		} else {
 			fmt.Println(err.Error())
-			return Response{"Problem retrieving the goal", model.Goal{}}, err
+			return model.Goal{}, model.ResponseError{
+				Code:    500,
+				Message: "Problem retrieving the goal",
+			}
 		}
 	}
 
@@ -85,14 +100,13 @@ func (d *deps) HandleRequest(ctx context.Context, getInput GetInput) (Response, 
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return Response{Message: "Could not create the response."}, err
+		return model.Goal{}, model.ResponseError{
+			Code:    500,
+			Message: "Could not create the response.",
+		}
 	}
 
-	response := Response{
-		Message: "Successfully retrieved goal!",
-		Goal:    goal,
-	}
-	return response, nil
+	return goal, nil
 }
 
 func main() {
