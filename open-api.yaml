@@ -6,6 +6,7 @@ info:
     name: Tim
     email: tremmert93@gmail.com
   description: An API for the better application client types to interact with.
+
 paths:
   /goal:
     get:
@@ -40,6 +41,7 @@ paths:
         type: 'aws'
     post:
       summary: CreateGoal
+      x-amazon-apigateway-request-validator: Body
       security: 
         - BetterUserPool: []
       responses:
@@ -72,6 +74,7 @@ paths:
         required: true
     put:
       summary: EditGoal
+      x-amazon-apigateway-request-validator: Full
       tags:
         - goals
       security:
@@ -143,6 +146,7 @@ paths:
                 - key
     delete:
       summary: DeleteGoal
+      x-amazon-apigateway-request-validator: Params
       tags:
         - goals
       security:
@@ -177,6 +181,7 @@ paths:
         type: 'aws'
     get:
       summary: GetGoalById
+      x-amazon-apigateway-request-validator: Params
       tags:
         - goals
       security:
@@ -217,6 +222,7 @@ paths:
   '/users/{token}':
     delete:
       summary: DeleteUser
+      x-amazon-apigateway-request-validator: Params
       tags:
         - users
       security:
@@ -258,6 +264,7 @@ paths:
   /users/login:
     post:
       summary: Login
+      x-amazon-apigateway-request-validator: Body
       tags:
         - users
       responses:
@@ -302,6 +309,7 @@ paths:
   /users/logout:
     post:
       summary: Logout
+      x-amazon-apigateway-request-validator: Body
       tags:
         - users
       security:
@@ -338,6 +346,7 @@ paths:
   /users/verify:
     post:
       summary: Verify
+      x-amazon-apigateway-request-validator: Body
       responses:
         '200':
           description: OK
@@ -370,6 +379,7 @@ paths:
   /users:
     post:
       summary: CreateUser
+      x-amazon-apigateway-request-validator: Body
       responses:
         '201':
           description: Created
@@ -467,4 +477,15 @@ components:
         type: cognito_user_pools
         providerARNs:
           - arn:aws:cognito-idp:us-east-1:234248903973:userpool/us-east-1_5YFzqyyls
+
+x-amazon-apigateway-request-validators:
+  Full:
+    validateRequestBody: true
+    validateRequestParameters: true
+  Params:
+    validateRequestBody: false
+    validateRequestParameters: true
+  Body:
+    validateRequestBody: true
+    validateRequestParameters: false
 
