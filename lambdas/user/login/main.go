@@ -64,6 +64,11 @@ func (d *deps) HandleRequest(ctx context.Context, loginInput LoginInput) (Respon
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
+			case cognitoidentityprovider.ErrCodeNotAuthorizedException:
+				return Response{}, model.ResponseError{
+					Code:    400,
+					Message: "Incorrect username or password",
+				}
 			case cognitoidentityprovider.ErrCodePasswordResetRequiredException:
 				return Response{}, model.ResponseError{
 					Code:    400,

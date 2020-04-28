@@ -16,7 +16,7 @@ import (
 )
 
 type SignOutInput struct {
-	AccessToken string `json:"access_token"`
+	AccessToken string `json:"token"`
 }
 
 type Response struct {

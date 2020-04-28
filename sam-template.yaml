@@ -1,0 +1,227 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "sam-app\nSample SAM Template for sam-app\n"
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 250
+    Runtime: go1.x
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: Name of S3 bucket where swagger spec is stored
+  StageName:
+    Type: String
+    Description: The name of the stage
+    Default: dev
+  ClientId:
+    Type: String
+    Description: client id of cognito client app
+  ClientSecret:
+    Type: String
+    Description: client secret of cognito client app
+Resources:
+  BetterTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: user
+        AttributeType: S
+      - AttributeName: id
+        AttributeType: S
+      - AttributeName: created
+        AttributeType: S
+      KeySchema:
+      - AttributeName: user
+        KeyType: HASH
+      - AttributeName: id
+        KeyType: RANGE
+      LocalSecondaryIndexes:
+      - IndexName: CreatedIndex
+        KeySchema:
+        - AttributeName: user
+          KeyType: HASH
+        - AttributeName: created
+          KeyType: RANGE
+        Projection:
+          ProjectionType: KEYS_ONLY
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: Goals
+  CreateGoal:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/goal-create
+      Policies:
+      - DynamoDBWritePolicy:
+          TableName: Goals
+      Events:
+        CreateGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals
+            Method: POST
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  EditGoal:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/goal-edit
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: Goals
+      Events:
+        EditGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals/{id}
+            Method: PUT
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  GetGoal:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/goal-get
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName: Goals
+      Events:
+        GetGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals/{id}
+            Method: GET
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  ListGoals:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/goal-list
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName: Goals
+      Events:
+        ListGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals
+            Method: GET
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  DeleteGoal:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/goal-delete
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: Goals
+      Events:
+        DeleteGoalEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /goals/{id}
+            Method: DELETE
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  CreateUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/user-signup
+      Environment:
+        Variables:
+          AWS_CLIENT_ID:
+            Ref: ClientId
+          AWS_CLIENT_SECRET:
+            Ref: ClientSecret
+      Events:
+        CreateUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users
+            Method: POST
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  VerifyUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/user-verify
+      Environment:
+        Variables:
+          AWS_CLIENT_ID:
+            Ref: ClientId
+          AWS_CLIENT_SECRET:
+            Ref: ClientSecret
+      Events:
+        VerifyUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users/verify
+            Method: POST
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  LoginUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/user-login
+      Environment:
+        Variables:
+          AWS_CLIENT_ID:
+            Ref: ClientId
+          AWS_CLIENT_SECRET:
+            Ref: ClientSecret
+      Events:
+        LoginUserEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: RestApi
+            Path: /users/login
+            Method: POST
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+  LogoutUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/user-logout
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+    Events:
+      LogoutUserEvent:
+        Type: Api
+        Properties:
+          RestApiId:
+            Ref: RestApi
+          Path: /users/logout
+          Method: POST
+  DeleteUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bin/user-delete
+      CodeUri: s3://better/36135c86ab551139da726f882c39030c
+    Events:
+      DeleteUserEvent:
+        Type: Api
+        Properties:
+          RestApiId:
+            Ref: RestApi
+          Path: /users/{id}
+          Method: DELETE
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: better-api-${StageName}
+      StageName:
+        Ref: StageName
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location:
+              Fn::Sub: s3://${S3BucketName}/open-api.yaml

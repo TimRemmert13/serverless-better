@@ -8,7 +8,7 @@ info:
   description: An API for the better application client types to interact with.
 
 paths:
-  /goal:
+  /goals:
     get:
       summary: ListGoals
       security:
@@ -36,9 +36,25 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*401.*':
+            statusCode: '401'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*403.*':
+            statusCode: '403'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+        requestTemplates:
+          application/json: >
+            {
+              "user": "$context.authorizer.claims['cognito:username']"
+            }
         passthroughBehavior: 'when_no_match'
-        httpMethod: 'GET'
+        httpMethod: 'POST'
         type: 'aws'
+        
     post:
       summary: CreateGoal
       x-amazon-apigateway-request-validator: Body
@@ -62,10 +78,20 @@ paths:
         responses:
           default:
             statusCode: '201'
+          '.*401.*':
+            statusCode: '401'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*403.*':
+            statusCode: '403'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws'
-  '/goal/{id}':
+  '/goals/{id}':
     parameters:
       - schema:
           type: string
@@ -107,6 +133,26 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*401.*':
+            statusCode: '401'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*403.*':
+            statusCode: '403'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*404.*':
+            statusCode: '404'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         requestTemplates:
           application/json: >
             {
@@ -170,6 +216,26 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*401.*':
+            statusCode: '401'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*403.*':
+            statusCode: '403'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*404.*':
+            statusCode: '404'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         requestTemplates:
           application/json: >
             {
@@ -210,6 +276,26 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*401.*':
+            statusCode: '401'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*403.*':
+            statusCode: '403'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*404.*':
+            statusCode: '404'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         requestTemplates:
           application/json: >
             {
@@ -246,6 +332,26 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*401.*':
+            statusCode: '401'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*403.*':
+            statusCode: '403'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*404.*':
+            statusCode: '404'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         requestTemplates:
           application/json: >
             {
@@ -295,7 +401,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
         description: The users username and password
       x-amazon-apigateway-integration:
         uri: 
@@ -303,6 +417,16 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*404.*':
+            statusCode: '404'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws'
@@ -340,6 +464,16 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
+          '.*401.*':
+            statusCode: '401'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws'
@@ -373,6 +507,11 @@ paths:
         responses:
           default:
             statusCode: '200'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws'
@@ -401,6 +540,11 @@ paths:
         responses:
           default:
             statusCode: '201'
+          '.*400.*':
+            statusCode: '400'
+            responseTemplates: 
+              application/json: >
+                "error": $input.json("errorMessage")
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws'
@@ -464,9 +608,13 @@ components:
           type: string
         password:
           type: string
+        email:
+          type: string
       required:
         - username
         - password
+        - email
+
   securitySchemes:
     BetterUserPool:
       type: apiKey

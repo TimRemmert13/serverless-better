@@ -26,6 +26,7 @@ type UserInput struct {
 }
 
 type Response struct {
+	Code    int16  `json:"code"`
 	Message string `json:"response"`
 }
 
@@ -73,7 +74,7 @@ func (d *deps) HandleRequest(ctx context.Context, userInput UserInput) (Response
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
-			case cognitoidentityprovider.ErrCodeInvalidParameterException:
+			case cognitoidentityprovider.ErrCodeInvalidPasswordException:
 				return Response{}, model.ResponseError{
 					Code:    400,
 					Message: "Invalid password",
