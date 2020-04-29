@@ -1,9 +1,11 @@
 {
   "key": {
-    "user": "Tim",
-    "id": "1"
+    "user": "tim",
+    "id": "9f743c66-d69c-40e0-b678-ec10846105ee"
   },
-  "description": "My new description",
-  "title": "my new title",
-  "achieved": true
+  "updates": {
+    "description": "My new description",
+    "title": "my new title",
+    "achieved": true
+  }
 }

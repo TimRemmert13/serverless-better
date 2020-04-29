@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+	"github.com/google/uuid"
 
 	"github.com/serverless/better/lib/model"
 
@@ -32,7 +33,7 @@ and adds it to dynamodb for storage
 func (d *deps) HandleRequest(ctx context.Context, goal model.Goal) (Response, error) {
 
 	// validate input
-	if goal.User == "" || goal.ID == "" || goal.Title == "" {
+	if goal.User == "" || goal.Title == "" {
 		return Response{}, model.ResponseError{
 			Code:    400,
 			Message: "You must provide a goal user, id, and title",
@@ -40,6 +41,7 @@ func (d *deps) HandleRequest(ctx context.Context, goal model.Goal) (Response, er
 	}
 
 	goal.Created = time.Now()
+	goal.ID = uuid.New()
 
 	// get dynamodb session
 	if d.ddb == nil {
@@ -88,6 +90,7 @@ func (d *deps) HandleRequest(ctx context.Context, goal model.Goal) (Response, er
 					Message: "Reached the request limit for dynamodb",
 				}
 			default:
+				fmt.Println(aerr)
 				return Response{}, model.ResponseError{
 					Code:    500,
 					Message: "Problem creating a new goal",

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 
@@ -16,8 +18,8 @@ import (
 )
 
 type Key struct {
-	User string `json:"user"`
-	ID   string `json:"id"`
+	User string    `json:"user"`
+	ID   uuid.UUID `json:"id"`
 }
 
 type deps struct {
@@ -30,7 +32,8 @@ and add it to dynamodb
 func (d *deps) HandleRequest(ctx context.Context, inputKey Key) (model.Goal, error) {
 
 	// validate input
-	if inputKey.ID == "" || inputKey.User == "" {
+	empty := uuid.UUID{}
+	if inputKey.ID == empty || inputKey.User == "" {
 		return model.Goal{}, model.ResponseError{
 			Code:    400,
 			Message: "You must provide a valid username and goal id",

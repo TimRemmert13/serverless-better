@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 
@@ -16,8 +18,8 @@ import (
 )
 
 type GetInput struct {
-	User string `json:"user"`
-	ID   string `json:"id"`
+	User string    `json:"user"`
+	ID   uuid.UUID `json:"id"`
 }
 
 type deps struct {
@@ -30,7 +32,8 @@ and add it to dynamodb
 func (d *deps) HandleRequest(ctx context.Context, getInput GetInput) (model.Goal, error) {
 
 	// valid input
-	if getInput.User == "" || getInput.ID == "" {
+	empty := uuid.UUID{}
+	if getInput.User == "" || getInput.ID == empty {
 		return model.Goal{}, model.ResponseError{
 			Code:    400,
 			Message: "Request must have a user and an id",

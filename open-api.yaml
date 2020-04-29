@@ -88,6 +88,14 @@ paths:
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
+        requestTemplates:
+          application/json: >
+            {
+              "user": "$context.authorizer.claims['cognito:username']",
+              "description": $input.json('description'),
+              "achieved": $input.json('achieved'),
+              "title": $input.json('title')
+            }
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws'
@@ -129,7 +137,7 @@ paths:
       description: Update an existing goal
       x-amazon-apigateway-integration:
         uri: 
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetGoal.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EditGoal.Arn}/invocations
         responses:
           default:
             statusCode: '200'
@@ -155,12 +163,15 @@ paths:
                 "error": $input.json("errorMessage")
         requestTemplates:
           application/json: >
-            {
-              "id": "$input.params('id')"
-              "user": "$context.authorizer.claims.username"
+            { 
+              "key": {
+                "id": "$input.params('id')",
+                "user": "$context.authorizer.claims['cognito:username']"
+              },
+              "updates": $input.json('updates')
             }
         passthroughBehavior: 'when_no_match'
-        httpMethod: 'PUT'
+        httpMethod: 'POST'
         type: 'aws'
       requestBody:
         description: New Goal object to update the existing goal
@@ -169,16 +180,6 @@ paths:
             schema:
               type: object
               properties:
-                key:
-                  type: object
-                  required:
-                    - user
-                    - id
-                  properties:
-                    user:
-                      type: string
-                    id:
-                      type: string
                 updates:
                   type: object
                   properties:
@@ -189,7 +190,7 @@ paths:
                     achieved:
                       type: boolean
               required:
-                - key
+                - updates
     delete:
       summary: DeleteGoal
       x-amazon-apigateway-request-validator: Params
@@ -239,11 +240,11 @@ paths:
         requestTemplates:
           application/json: >
             {
-              "id": "$input.params('id')"
-              "user": "$context.authorizer.claims.username"
+              "id": "$input.params('id')",
+              "user": "$context.authorizer.claims['cognito:username']"
             }
         passthroughBehavior: 'when_no_match'
-        httpMethod: 'DELETE'
+        httpMethod: 'POST'
         type: 'aws'
     get:
       summary: GetGoalById
@@ -300,10 +301,10 @@ paths:
           application/json: >
             {
               "id": "$input.params('id')"
-              "user": "$context.authorizer.claims.username"
+              "user": "$context.authorizer.claims['cognito:username']"
             }
         passthroughBehavior: 'when_no_match'
-        httpMethod: 'GET'
+        httpMethod: 'POST'
         type: 'aws'
   '/users/{token}':
     delete:
@@ -355,11 +356,11 @@ paths:
         requestTemplates:
           application/json: >
             {
+              "user": "$context.authorizer.claims['cognito:username']",
               "token": "$input.params('token')"
-              "user": "$context.authorizer.claims.username"
             }
         passthroughBehavior: 'when_no_match'
-        httpMethod: 'DELETE'
+        httpMethod: 'POST'
         type: 'aws'
     parameters:
       - schema:
@@ -574,7 +575,6 @@ components:
           items:
             $ref: '#/components/schemas/Habit'
       required:
-        - user
         - title
     Habit:
       title: Habit

@@ -6,7 +6,7 @@
   ],
   "AttributeDefinitions": [
     { "AttributeName": "user", "AttributeType": "S" },
-    { "AttributeName": "id", "AttributeType": "S" },
+    { "AttributeName": "id", "AttributeType": "B" },
     { "AttributeName": "created", "AttributeType": "S"}
   ],
   "LocalSecondaryIndexes": [

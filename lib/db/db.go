@@ -11,7 +11,7 @@ import (
 func GetDbSession() *dynamodb.DynamoDB {
 
 	// if running lambdas locally for developement use dynamodb instance
-	//in docker container
+	// in docker container
 	if os.Getenv("RUN_ENV") == "LOCAL" {
 		region := "us-east-1"
 		endpoint := "http://localhost:8000"

@@ -1,10 +1,14 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Goal struct {
 	User        string    `json:"user"`
-	ID          string    `json:"id"`
+	ID          uuid.UUID `json:"id"`
 	Description string    `json:"description"`
 	Title       string    `json:"title"`
 	Achieved    bool      `json:"achieved"`
