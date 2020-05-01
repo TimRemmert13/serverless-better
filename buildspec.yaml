@@ -1,0 +1,49 @@
+version: 0.2
+
+phases:
+
+  install:
+    runtime-versions:
+      golang: 1.12
+
+
+    commands:
+      - echo starting better API pipeline
+      # Install golint
+      - go get golang.org/x/lint/golint
+
+  pre_build:
+    commands:
+
+      # enter project directory
+      - ls
+
+      # Fetch all dependencies
+      - make deps
+
+      # Ensure code passes all lint tests
+      - golint -set_exit_status
+
+      # Check for common Go application problems with 'go vet'
+      - go vet .
+
+      # Run all tests included with our application
+      #- go test ./...
+
+  build:
+    commands:
+      #upload swagger file to S3 bucket
+      - aws s3 cp open-api.yaml s3://$S3_BUCKET/open-api.yaml
+
+      #Package and upload to s3
+      - aws cloudformation package --template-file $INPUT_FILE \
+                          --output-template-file $OUTPUT_FILE \
+                          --s3-bucket $S3_BUCKET \
+
+  post_build:
+    commands:
+      - echo "build successful"
+artifacts:
+  files:
+    - $OUTPUT_FILE
+    - template-configuration.json
