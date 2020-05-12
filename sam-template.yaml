@@ -64,7 +64,7 @@ Resources:
               Ref: RestApi
             Path: /goals
             Method: POST
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   EditGoal:
     Type: AWS::Serverless::Function
     Properties:
@@ -80,7 +80,7 @@ Resources:
               Ref: RestApi
             Path: /goals/{id}
             Method: PUT
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   GetGoal:
     Type: AWS::Serverless::Function
     Properties:
@@ -96,7 +96,7 @@ Resources:
               Ref: RestApi
             Path: /goals/{id}
             Method: GET
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   ListGoals:
     Type: AWS::Serverless::Function
     Properties:
@@ -112,7 +112,7 @@ Resources:
               Ref: RestApi
             Path: /goals
             Method: GET
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   DeleteGoal:
     Type: AWS::Serverless::Function
     Properties:
@@ -128,7 +128,7 @@ Resources:
               Ref: RestApi
             Path: /goals/{id}
             Method: DELETE
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   CreateUser:
     Type: AWS::Serverless::Function
     Properties:
@@ -147,7 +147,7 @@ Resources:
               Ref: RestApi
             Path: /users
             Method: POST
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   VerifyUser:
     Type: AWS::Serverless::Function
     Properties:
@@ -166,7 +166,7 @@ Resources:
               Ref: RestApi
             Path: /users/verify
             Method: POST
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   LoginUser:
     Type: AWS::Serverless::Function
     Properties:
@@ -185,12 +185,12 @@ Resources:
               Ref: RestApi
             Path: /users/login
             Method: POST
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
   LogoutUser:
     Type: AWS::Serverless::Function
     Properties:
       Handler: bin/user-logout
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
     Events:
       LogoutUserEvent:
         Type: Api
@@ -203,7 +203,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: bin/user-delete
-      CodeUri: s3://better/18b4ec486ba625c490f5b0fa65006f78
+      CodeUri: s3://better/d574b1c7d206a105a1a618b8a8fdad26
     Events:
       DeleteUserEvent:
         Type: Api

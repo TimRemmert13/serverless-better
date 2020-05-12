@@ -9,6 +9,43 @@ info:
 
 paths:
   /goals:
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+        - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+            "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: |
+                {}
     get:
       summary: ListGoals
       security:
@@ -16,6 +53,16 @@ paths:
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -24,8 +71,28 @@ paths:
                   $ref: '#/components/schemas/Goal'
         '401':
           description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '403':
           description: Forbidden
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: get-goal
       description: Get all your created goal
       tags:
@@ -36,13 +103,25 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*401.*':
             statusCode: '401'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*403.*':
             statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -63,6 +142,40 @@ paths:
       responses:
         '201':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+        '403':
+          description: operation Forbidden
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: post-goal
       description: Create a new goal
       requestBody:
@@ -78,13 +191,25 @@ paths:
         responses:
           default:
             statusCode: '201'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*401.*':
             statusCode: '401'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*403.*':
             statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -106,6 +231,43 @@ paths:
         name: id
         in: path
         required: true
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+        - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: |
+                {}
     put:
       summary: EditGoal
       x-amazon-apigateway-request-validator: Full
@@ -116,6 +278,16 @@ paths:
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -127,12 +299,52 @@ paths:
                     $ref: '#/components/schemas/Goal'
         '400':
           description: Bad Request invalid id
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '401':
           description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '403':
           description: Forbidden
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '404':
           description: No goal found by that id
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: put-goal-id
       description: Update an existing goal
       x-amazon-apigateway-integration:
@@ -141,23 +353,43 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*401.*':
             statusCode: '401'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*403.*':
             statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*404.*':
             statusCode: '404'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -201,14 +433,64 @@ paths:
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '400':
           description: Bad Request invalid id
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '401':
           description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '403':
           description: Forbidden
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '404':
           description: No Goal found by that id
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: delete-goal-id
       description: Delete a goal by its id
       x-amazon-apigateway-integration:
@@ -217,23 +499,43 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*401.*':
             statusCode: '401'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*403.*':
             statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*404.*':
             statusCode: '404'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -256,18 +558,68 @@ paths:
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Goal'
         '400':
           description: Bad Request Invalid Id
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '401':
           description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '403':
           description: Forbidden
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '404':
           description: No goal found by that id
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: get-goal-id
       description: Get a specific goal by its id
       parameters: []
@@ -277,23 +629,43 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*401.*':
             statusCode: '401'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*403.*':
             statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*404.*':
             statusCode: '404'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -307,6 +679,43 @@ paths:
         httpMethod: 'POST'
         type: 'aws'
   '/users/{token}':
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+        - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: |
+                {}
     delete:
       summary: DeleteUser
       x-amazon-apigateway-request-validator: Params
@@ -317,14 +726,64 @@ paths:
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '400':
           description: Invalid id
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '401':
           description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '403':
           description: Forbidden
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '404':
           description: User not found
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: delete-users
       description: Delete the currently logged in user
       x-amazon-apigateway-integration:
@@ -333,23 +792,43 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*401.*':
             statusCode: '401'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*403.*':
             statusCode: '403'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*404.*':
             statusCode: '404'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -369,6 +848,43 @@ paths:
         in: path
         required: true
   /users/login:
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+        - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: |
+                {}
     post:
       summary: Login
       x-amazon-apigateway-request-validator: Body
@@ -377,6 +893,16 @@ paths:
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -394,8 +920,28 @@ paths:
                     type: string
         '400':
           description: Bad Request Invalid user credentials
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '404':
           description: User not found
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: post-users-login
       description: Login with a users account
       requestBody:
@@ -418,13 +964,25 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*404.*':
             statusCode: '404'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -432,6 +990,43 @@ paths:
         httpMethod: 'POST'
         type: 'aws'
   /users/logout:
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+        - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: |
+                {}
     post:
       summary: Logout
       x-amazon-apigateway-request-validator: Body
@@ -442,10 +1037,40 @@ paths:
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '400':
           description: Bad Request Invalid token
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '401':
           description: Unauthorized
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: post-users-logout
       description: Logout of your current session
       requestBody:
@@ -465,13 +1090,25 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
           '.*401.*':
             statusCode: '401'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -479,14 +1116,71 @@ paths:
         httpMethod: 'POST'
         type: 'aws'
   /users/verify:
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+        - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: |
+                {}
     post:
       summary: Verify
       x-amazon-apigateway-request-validator: Body
       responses:
         '200':
           description: OK
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '400':
           description: Bad Request invalid token or username
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: post-users-verify
       description: Verify users email address
       requestBody:
@@ -508,8 +1202,16 @@ paths:
         responses:
           default:
             statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
@@ -517,14 +1219,71 @@ paths:
         httpMethod: 'POST'
         type: 'aws'
   /users:
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      tags:
+        - CORS
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 200
+            }
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            responseTemplates:
+              application/json: |
+                {}
     post:
       summary: CreateUser
       x-amazon-apigateway-request-validator: Body
       responses:
         '201':
           description: Created
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
         '400':
           description: Bad Request invalid username or password
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema: 
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
       operationId: post-users
       description: Create a new User
       requestBody:
@@ -541,15 +1300,23 @@ paths:
         responses:
           default:
             statusCode: '201'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           '.*400.*':
             statusCode: '400'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-type,X-Amz-Date,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'*'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates: 
               application/json: >
                 "error": $input.json("errorMessage")
         passthroughBehavior: 'when_no_match'
         httpMethod: 'POST'
         type: 'aws'
-  
+        
 components:
   schemas:
     Goal:
